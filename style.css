@@ -661,14 +661,19 @@ input[type="color"]::-webkit-color-swatch {
         min-width: 0;
         box-sizing: border-box;
         margin: 0 2px;
+        color: var(--text-color) !important;
+        -webkit-text-fill-color: var(--text-color) !important;
     }
     
     /* Fix date input on iOS */
-    input[type="date"] {
+    input[type="date"],
+    input[type="number"] {
         min-width: 0;
         max-width: calc(100% - 4px);
         -webkit-appearance: none;
         appearance: none;
+        color: var(--text-color) !important;
+        -webkit-text-fill-color: var(--text-color) !important;
     }
     
     .elegant-btn {

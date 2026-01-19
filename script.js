@@ -117,25 +117,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============ Adaptive Dot Size ============
     function calculateDotSize() {
         const lifespan = parseInt(lifespanInput.value) || 80;
-        const containerWidth = gridContainer.parentElement?.offsetWidth || window.innerWidth - 40;
+        const containerWidth = Math.min(
+            gridContainer.parentElement?.offsetWidth || window.innerWidth - 40,
+            window.innerWidth - 40
+        );
         
         // Calculate based on available width and number of columns
         const cols = isTransposed ? lifespan : 52;
         const labelWidth = 35;
-        const availableWidth = containerWidth - labelWidth;
+        const availableWidth = containerWidth - labelWidth - 20; // Extra padding
         const gap = 4;
         
         // Calculate optimal dot size
         let dotSize = Math.floor((availableWidth - (cols - 1) * gap) / cols);
         
-        // Clamp between 6px and 16px
-        dotSize = Math.max(6, Math.min(16, dotSize));
+        // Clamp between 4px and 14px (reduced max for better fit)
+        dotSize = Math.max(4, Math.min(14, dotSize));
         
         // Apply to CSS
-        if (dotSize !== currentDotSize) {
-            currentDotSize = dotSize;
-            document.documentElement.style.setProperty('--dot-size', `${dotSize}px`);
-        }
+        currentDotSize = dotSize;
+        document.documentElement.style.setProperty('--dot-size', `${dotSize}px`);
         
         return dotSize;
     }
@@ -170,13 +171,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateAll() {
-        const lifespanYears = parseInt(lifespanInput.value) || 1;
+        const lifespanYears = parseInt(lifespanInput.value) || 80;
         const birthday = new Date(birthdayInput.value);
         
-        if (isNaN(birthday.getTime())) return;
+        if (isNaN(birthday.getTime())) {
+            // Still generate grid even without valid birthday
+            if (lastLifespan !== lifespanYears || lastTransposed !== isTransposed) {
+                regenerateGridStructure(lifespanYears);
+                lastLifespan = lifespanYears;
+                lastTransposed = isTransposed;
+            }
+            return;
+        }
 
-        calculateDotSize();
+        const newDotSize = calculateDotSize();
 
+        // Regenerate if lifespan, transpose, or dot size changed
         if (lastLifespan !== lifespanYears || lastTransposed !== isTransposed) {
             regenerateGridStructure(lifespanYears);
             lastLifespan = lifespanYears;
