@@ -1,0 +1,362 @@
+:root {
+    --bg-color: #0d0d0d;
+    --text-color: #f0f0f0;
+    --panel-bg: rgba(20, 20, 20, 0.7);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --accent-color: #e67e22; /* Sophisticated Amber/Orange */
+    --passed-color: #50C878; /* Default Emerald */
+    --future-color: #1a1a1a; /* Darker, more subtle gray */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 60px 20px;
+}
+
+.container {
+    max-width: 1100px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    color: #555;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+.settings-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 28px;
+    padding: 20px 30px;
+    width: fit-content;
+    max-width: 100%;
+    backdrop-filter: blur(20px);
+    margin-bottom: 50px;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-end; /* Ensures bottoms of inputs align */
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center; /* Changed from flex-start to center */
+    justify-content: flex-end; /* Push content to bottom for alignment */
+    height: 100%; /* Ensure full height for alignment context */
+}
+
+.setting-item label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: auto; /* Push label to top if needed, or just keep gap */
+    line-height: 1; /* Reset line height for precise alignment */
+    padding-bottom: 4px;
+    width: 100%; /* Ensure label takes full width for text-align to work if needed, though align-items center handles it */
+    text-align: center; /* Explicitly center text */
+}
+
+.elegant-input {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    font-family: inherit;
+}
+
+.elegant-input:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.elegant-input:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.03);
+}
+
+.color-picker-wrapper {
+    position: relative;
+    width: 30px;
+    height: 30px; /* Reduced by ~30% from 42px */
+    display: flex;
+    align-items: center;
+    margin-top: 0; /* Remove top margin to align with flex-end */
+    margin-bottom: 6px; /* Push up slightly from bottom to align visually center with inputs */
+}
+
+input[type="color"] {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    width: 100%;
+    height: 100%;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px; /* Slightly smaller radius */
+}
+
+.presets {
+    display: flex;
+    gap: 14px;
+    height: 42px; /* Keep alignment height same for container */
+    align-items: center;
+}
+
+.preset-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%; /* Rounded for more elegance */
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.preset-btn:hover {
+    transform: translateY(-3px);
+}
+
+.preset-btn.active {
+    border-color: #fff;
+    transform: scale(1.1);
+}
+
+.visualization {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.grid-container {
+    display: grid;
+    /* Columns will be set dynamically via JS */
+    gap: 4px;
+    margin-bottom: 50px;
+    align-items: center;
+    contain: content;
+}
+
+.elegant-btn {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: #888;
+    padding: 0 12px; /* Reduced padding */
+    height: 30px; /* Reduced by ~30% from 42px */
+    line-height: 28px; /* Vertically center text */
+    border-radius: 8px; /* Slightly smaller radius */
+    font-size: 0.7rem; /* Smaller font */
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    margin-top: 0;
+    margin-bottom: 6px; /* Push up slightly */
+}
+
+.elegant-btn:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.elegant-btn.active {
+    background: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px rgba(230, 126, 34, 0.3);
+}
+
+.label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: #333; /* More subtle labels */
+    user-select: none;
+    line-height: 10px;
+    height: 10px;
+}
+
+.label.year {
+    text-align: right;
+    padding-right: 8px;
+}
+
+.label.week {
+    text-align: center;
+    height: auto;
+    padding-bottom: 4px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--future-color);
+    transition: background-color 0.5s ease;
+    /* Use will-change sparingly, only if performance is still an issue */
+}
+
+.dot.passed {
+    background-color: var(--passed-color);
+}
+
+@keyframes breathing {
+    0% {
+        transform: scale(1.4);
+        box-shadow: 0 0 20px var(--accent-color);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.0);
+        box-shadow: 0 0 5px var(--accent-color);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.4);
+        box-shadow: 0 0 20px var(--accent-color);
+        opacity: 1;
+    }
+}
+
+.dot.current {
+    background-color: var(--accent-color);
+    z-index: 10;
+    animation: breathing 1s ease-in-out infinite;
+    /* Remove transition to allow animation to take full control */
+    transition: none; 
+}
+
+.stats {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--accent-color);
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+@media (max-width: 1100px) {
+    .settings-panel {
+        width: 100%;
+        padding: 24px;
+    }
+    .settings-row {
+        gap: 24px;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 5px; /* Scrollbar padding */
+        flex-wrap: nowrap; /* Keep single row on medium screens too if desired, or wrap */
+    }
+    
+    /* Custom scrollbar for horizontal scroll if needed */
+    .settings-row::-webkit-scrollbar {
+        height: 4px;
+    }
+    .settings-row::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .settings-row::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.2);
+        border-radius: 4px;
+    }
+
+    .grid-container {
+        gap: 3px;
+        grid-template-columns: 20px repeat(52, 1fr);
+    }
+    .dot {
+        width: 8px;
+        height: 8px;
+    }
+    .label {
+        line-height: 8px;
+        height: 8px;
+    }
+}
+
+@media (max-width: 750px) {
+    .settings-row {
+        flex-wrap: wrap; /* Wrap on mobile */
+        justify-content: center;
+    }
+    
+    .grid-container {
+        gap: 2px;
+        grid-template-columns: 18px repeat(52, 1fr);
+    }
+    .dot {
+        width: 6px;
+        height: 6px;
+    }
+    .label {
+        font-size: 0.45rem;
+        line-height: 6px;
+        height: 6px;
+    }
+    .settings-panel {
+        padding: 24px;
+    }
+    .settings-row {
+        gap: 20px;
+    }
+}
