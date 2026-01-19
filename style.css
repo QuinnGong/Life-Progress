@@ -297,7 +297,7 @@ h1 {
 .elegant-input {
     background: var(--input-bg);
     border: 1px solid var(--border-color);
-    color: var(--text-color);
+    color: var(--text-color) !important;
     padding: 12px 18px;
     border-radius: 14px;
     font-size: 0.9rem;
@@ -305,6 +305,30 @@ h1 {
     outline: none;
     font-family: inherit;
     will-change: border-color, background-color;
+    -webkit-text-fill-color: var(--text-color);
+}
+
+/* Ensure date and number inputs use correct colors */
+input[type="date"].elegant-input,
+input[type="number"].elegant-input {
+    color: var(--text-color) !important;
+    -webkit-text-fill-color: var(--text-color);
+    color-scheme: dark;
+}
+
+[data-theme="light"] input[type="date"].elegant-input,
+[data-theme="light"] input[type="number"].elegant-input {
+    color-scheme: light;
+}
+
+/* Date picker icon color */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+    cursor: pointer;
+}
+
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.3);
 }
 
 .elegant-input:hover {
