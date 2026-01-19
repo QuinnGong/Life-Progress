@@ -45,7 +45,9 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 60px 20px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -283,34 +285,36 @@ h1 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #666;
-    margin-bottom: auto; /* Push label to top if needed, or just keep gap */
-    line-height: 1; /* Reset line height for precise alignment */
+    color: var(--text-secondary);
+    margin-bottom: auto;
+    line-height: 1;
     padding-bottom: 4px;
-    width: 100%; /* Ensure label takes full width for text-align to work if needed, though align-items center handles it */
-    text-align: center; /* Explicitly center text */
+    width: 100%;
+    text-align: center;
+    transition: color 0.3s ease;
 }
 
 .elegant-input {
     background: var(--input-bg);
     border: 1px solid var(--border-color);
-    color: #fff;
+    color: var(--text-color);
     padding: 12px 18px;
     border-radius: 14px;
     font-size: 0.9rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
     font-family: inherit;
+    will-change: border-color, background-color;
 }
 
 .elegant-input:hover {
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--border-color);
 }
 
 .elegant-input:focus {
-    border-color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.03);
+    border-color: var(--accent-color);
+    background: var(--input-bg);
+    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
 }
 
 .color-picker-wrapper {
@@ -377,11 +381,12 @@ input[type="color"]::-webkit-color-swatch {
 
 .grid-container {
     display: grid;
-    /* Columns will be set dynamically via JS */
     gap: 4px;
     margin-bottom: 50px;
     align-items: center;
-    contain: content;
+    contain: strict;
+    will-change: contents;
+    transform: translateZ(0); /* Force GPU layer */
 }
 
 .elegant-btn {
@@ -453,8 +458,10 @@ input[type="color"]::-webkit-color-swatch {
     height: var(--dot-size, 10px);
     border-radius: 50%;
     background-color: var(--future-color);
-    transition: background-color 0.5s ease, transform 0.2s ease;
+    transition: background-color 0.3s ease, transform 0.15s ease;
     cursor: pointer;
+    will-change: transform;
+    contain: layout style;
 }
 
 .dot:hover {

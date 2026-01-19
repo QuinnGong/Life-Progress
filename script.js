@@ -409,30 +409,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
 
     // ============ Dot Hover Tooltip (Desktop) ============
+    let tooltipRaf = null;
+    let lastHoveredDot = null;
+    
     gridContainer.addEventListener('mousemove', (e) => {
         if (e.target.classList.contains('dot')) {
-            const year = e.target.dataset.year;
-            const week = e.target.dataset.week;
-            const index = parseInt(e.target.dataset.index);
+            // Only update if hovering a different dot
+            if (lastHoveredDot === e.target) {
+                // Just update position
+                dotTooltip.style.left = `${e.clientX + 10}px`;
+                dotTooltip.style.top = `${e.clientY + 10}px`;
+                return;
+            }
             
-            const birthday = new Date(birthdayInput.value);
-            const dotDate = new Date(birthday);
-            dotDate.setDate(dotDate.getDate() + index * 7);
+            lastHoveredDot = e.target;
             
-            const dateStr = dotDate.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
+            if (tooltipRaf) cancelAnimationFrame(tooltipRaf);
+            tooltipRaf = requestAnimationFrame(() => {
+                const year = e.target.dataset.year;
+                const week = e.target.dataset.week;
+                const index = parseInt(e.target.dataset.index);
+                
+                const birthday = new Date(birthdayInput.value);
+                const dotDate = new Date(birthday);
+                dotDate.setDate(dotDate.getDate() + index * 7);
+                
+                const dateStr = dotDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                dotTooltip.textContent = `Year ${year}, Week ${week} · ${dateStr}`;
+                dotTooltip.style.left = `${e.clientX + 10}px`;
+                dotTooltip.style.top = `${e.clientY + 10}px`;
+                dotTooltip.classList.add('visible');
             });
-            
-            dotTooltip.textContent = `Year ${year}, Week ${week} · ${dateStr}`;
-            dotTooltip.style.left = `${e.clientX + 10}px`;
-            dotTooltip.style.top = `${e.clientY + 10}px`;
-            dotTooltip.classList.add('visible');
+        } else {
+            lastHoveredDot = null;
+            dotTooltip.classList.remove('visible');
         }
     });
 
     gridContainer.addEventListener('mouseleave', () => {
+        lastHoveredDot = null;
         dotTooltip.classList.remove('visible');
     });
 
@@ -477,17 +497,40 @@ document.addEventListener('DOMContentLoaded', () => {
         requestUpdate();
     });
 
-    birthdayInput.addEventListener('input', () => {
+    // Throttled input handlers for better performance
+    let inputTimeout;
+    function throttledUpdate() {
+        clearTimeout(inputTimeout);
+        inputTimeout = setTimeout(() => {
+            saveSettings();
+            requestUpdate();
+        }, 16); // ~60fps
+    }
+
+    birthdayInput.addEventListener('input', throttledUpdate);
+    birthdayInput.addEventListener('change', () => {
         saveSettings();
         requestUpdate();
     });
 
-    lifespanInput.addEventListener('input', () => {
+    lifespanInput.addEventListener('input', throttledUpdate);
+    lifespanInput.addEventListener('change', () => {
         saveSettings();
         requestUpdate();
     });
 
+    // Color picker uses RAF for smooth updates
+    let colorUpdatePending = false;
     passedColorInput.addEventListener('input', (e) => {
+        if (colorUpdatePending) return;
+        colorUpdatePending = true;
+        requestAnimationFrame(() => {
+            updatePassedColor(e.target.value);
+            colorUpdatePending = false;
+        });
+    });
+    
+    passedColorInput.addEventListener('change', (e) => {
         updatePassedColor(e.target.value);
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         saveSettings();
