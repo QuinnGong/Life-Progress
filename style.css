@@ -476,6 +476,8 @@ input[type="color"]::-webkit-color-swatch {
         height: auto;
         justify-content: flex-start;
         width: 100%;
+        min-width: 0;
+        overflow: hidden;
     }
     
     .setting-item label {
@@ -489,6 +491,15 @@ input[type="color"]::-webkit-color-swatch {
         font-size: 0.75rem;
         border-radius: 8px;
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    
+    /* Fix date input on iOS */
+    input[type="date"] {
+        min-width: 0;
+        max-width: 100%;
     }
     
     .elegant-btn {
