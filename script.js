@@ -117,8 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============ Adaptive Dot Size ============
     function calculateDotSize() {
         const lifespan = parseInt(lifespanInput.value) || 80;
+        const parentWidth = gridContainer.parentElement?.offsetWidth;
         const containerWidth = Math.min(
-            gridContainer.parentElement?.offsetWidth || window.innerWidth - 40,
+            parentWidth || window.innerWidth - 40,
             window.innerWidth - 40
         );
         
@@ -174,23 +175,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const lifespanYears = parseInt(lifespanInput.value) || 80;
         const birthday = new Date(birthdayInput.value);
         
+        // Check if we need to regenerate BEFORE any async operations
+        const needsRegenerate = lastLifespan !== lifespanYears || lastTransposed !== isTransposed;
+        
+        // Update tracking variables IMMEDIATELY to prevent race conditions
+        if (needsRegenerate) {
+            lastLifespan = lifespanYears;
+            lastTransposed = isTransposed;
+        }
+        
         if (isNaN(birthday.getTime())) {
-            // Still generate grid even without valid birthday
-            if (lastLifespan !== lifespanYears || lastTransposed !== isTransposed) {
+            if (needsRegenerate) {
                 regenerateGridStructure(lifespanYears);
-                lastLifespan = lifespanYears;
-                lastTransposed = isTransposed;
             }
             return;
         }
 
-        const newDotSize = calculateDotSize();
+        calculateDotSize();
 
-        // Regenerate if lifespan, transpose, or dot size changed
-        if (lastLifespan !== lifespanYears || lastTransposed !== isTransposed) {
+        if (needsRegenerate) {
             regenerateGridStructure(lifespanYears);
-            lastLifespan = lifespanYears;
-            lastTransposed = isTransposed;
         }
 
         updateDotStatus(birthday, lifespanYears);

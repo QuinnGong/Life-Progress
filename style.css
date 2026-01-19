@@ -304,7 +304,6 @@ h1 {
     transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
     font-family: inherit;
-    will-change: border-color, background-color;
     -webkit-text-fill-color: var(--text-color);
 }
 
@@ -312,13 +311,22 @@ h1 {
 input[type="date"].elegant-input,
 input[type="number"].elegant-input {
     color: var(--text-color) !important;
-    -webkit-text-fill-color: var(--text-color);
+    -webkit-text-fill-color: var(--text-color) !important;
+}
+
+/* Color scheme for input controls */
+:root {
     color-scheme: dark;
+}
+
+[data-theme="light"] {
+    color-scheme: light;
 }
 
 [data-theme="light"] input[type="date"].elegant-input,
 [data-theme="light"] input[type="number"].elegant-input {
-    color-scheme: light;
+    color: var(--text-color) !important;
+    -webkit-text-fill-color: var(--text-color) !important;
 }
 
 /* Date picker icon color */
@@ -408,9 +416,6 @@ input[type="color"]::-webkit-color-swatch {
     gap: 4px;
     margin-bottom: 50px;
     align-items: center;
-    contain: strict;
-    will-change: contents;
-    transform: translateZ(0); /* Force GPU layer */
 }
 
 .elegant-btn {
@@ -484,8 +489,6 @@ input[type="color"]::-webkit-color-swatch {
     background-color: var(--future-color);
     transition: background-color 0.3s ease, transform 0.15s ease;
     cursor: pointer;
-    will-change: transform;
-    contain: layout style;
 }
 
 .dot:hover {
@@ -661,8 +664,6 @@ input[type="color"]::-webkit-color-swatch {
         min-width: 0;
         box-sizing: border-box;
         margin: 0 2px;
-        color: var(--text-color) !important;
-        -webkit-text-fill-color: var(--text-color) !important;
     }
     
     /* Fix date input on iOS */
@@ -672,8 +673,25 @@ input[type="color"]::-webkit-color-swatch {
         max-width: calc(100% - 4px);
         -webkit-appearance: none;
         appearance: none;
-        color: var(--text-color) !important;
-        -webkit-text-fill-color: var(--text-color) !important;
+    }
+    
+    /* Light theme mobile - force dark text */
+    [data-theme="light"] .elegant-input,
+    [data-theme="light"] input[type="date"],
+    [data-theme="light"] input[type="number"] {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+    }
+    
+    /* Dark theme mobile - force light text */
+    [data-theme="dark"] .elegant-input,
+    [data-theme="dark"] input[type="date"],
+    [data-theme="dark"] input[type="number"],
+    :root:not([data-theme]) .elegant-input,
+    :root:not([data-theme]) input[type="date"],
+    :root:not([data-theme]) input[type="number"] {
+        color: #f0f0f0 !important;
+        -webkit-text-fill-color: #f0f0f0 !important;
     }
     
     .elegant-btn {
