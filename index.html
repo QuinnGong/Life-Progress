@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Life Progress</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d0d0d">
     <link rel="icon" type="image/png" sizes="128x128" href="chrome-extension/icon128.png">
     <link rel="icon" type="image/png" sizes="64x64" href="chrome-extension/icon64.png">
     <link rel="apple-touch-icon" href="chrome-extension/icon128.png">
@@ -67,6 +69,32 @@
                         </svg>
                         Install
                     </button>
+                </div>
+
+                <div class="setting-item">
+                    <label>Actions</label>
+                    <div class="action-buttons">
+                        <button id="themeToggle" class="elegant-btn" title="Toggle Theme">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                        </button>
+                        <button id="shareBtn" class="elegant-btn" title="Share Map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                                <polyline points="16 6 12 2 8 6"></polyline>
+                                <line x1="12" y1="2" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>

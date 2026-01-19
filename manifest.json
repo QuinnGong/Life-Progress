@@ -1,0 +1,21 @@
+{
+  "name": "Life Progress",
+  "short_name": "Life Map",
+  "description": "Visualize your life progress, one week at a time.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "icons": [
+    {
+      "src": "chrome-extension/icon64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "chrome-extension/icon128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ]
+}

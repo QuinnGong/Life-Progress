@@ -9,6 +9,35 @@
     --future-color: #1a1a1a; /* Darker, more subtle gray */
 }
 
+/* Light Theme Variables */
+body.light-theme {
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --panel-bg: rgba(255, 255, 255, 0.85);
+    --input-bg: rgba(0, 0, 0, 0.05);
+    --border-color: rgba(0, 0, 0, 0.1);
+    --future-color: #e9ecef;
+}
+
+body.light-theme h1 {
+    background: linear-gradient(135deg, #1a1a1a 0%, #555 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .subtitle {
+    color: #6c757d;
+}
+
+body.light-theme .elegant-input {
+    color: #212529;
+}
+
+body.light-theme .label {
+    color: #adb5bd;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -243,6 +272,12 @@ input[type="color"]::-webkit-color-swatch {
     align-items: center;
 }
 
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 .preset-btn {
     width: 26px;
     height: 26px;
@@ -377,6 +412,35 @@ input[type="color"]::-webkit-color-swatch {
     animation: breathing 1s ease-in-out infinite;
     /* Remove transition to allow animation to take full control */
     transition: none; 
+}
+
+/* Desktop Optimization & Hover Effects */
+@media (min-width: 1101px) {
+    .dot:hover {
+        transform: scale(2.5);
+        z-index: 100;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+    
+    .grid-container {
+        gap: 6px;
+    }
+    
+    .dot {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .label {
+        font-size: 0.65rem;
+    }
+
+    /* Larger and more interactive stats */
+    .stats:hover {
+        transform: scale(1.05);
+        opacity: 1;
+        cursor: default;
+    }
 }
 
 .stats {

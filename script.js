@@ -9,6 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsPanel = document.getElementById('settingsPanel');
     const header = document.getElementById('header');
+    const themeToggle = document.getElementById('themeToggle');
+    const shareBtn = document.getElementById('shareBtn');
+
+    // Haptic Feedback helper
+    function vibrate(duration = 10) {
+        if ('vibrate' in navigator) {
+            try {
+                navigator.vibrate(duration);
+            } catch (e) {
+                // Ignore vibration errors
+            }
+        }
+    }
 
     // Sophisticated and Elegant Presets for Dark Mode
     const elegantPresets = [
@@ -25,7 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lifespan: 80,
         passedColor: '#50C878',
         transposed: false,
-        settingsVisible: true
+        settingsVisible: true,
+        theme: 'dark'
     };
 
     let lastLifespan = null;
@@ -33,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let cachedDots = [];
     let isTransposed = false;
     let settingsVisible = true;
+    let currentTheme = 'dark';
 
     function loadSettings() {
         const saved = JSON.parse(localStorage.getItem('lifeMapSettings') || '{}');
@@ -41,9 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
         passedColorInput.value = saved.passedColor || defaults.passedColor;
         isTransposed = saved.transposed !== undefined ? saved.transposed : defaults.transposed;
         settingsVisible = saved.settingsVisible !== undefined ? saved.settingsVisible : defaults.settingsVisible;
+        currentTheme = saved.theme || defaults.theme;
         
         if (isTransposed) transposeBtn.classList.add('active');
         updatePassedColor(passedColorInput.value);
+        applyTheme(currentTheme);
         
         // Apply settings visibility
         updateSettingsVisibility();
@@ -55,9 +72,119 @@ document.addEventListener('DOMContentLoaded', () => {
             lifespan: lifespanInput.value,
             passedColor: passedColorInput.value,
             transposed: isTransposed,
-            settingsVisible: settingsVisible
+            settingsVisible: settingsVisible,
+            theme: currentTheme
         };
         localStorage.setItem('lifeMapSettings', JSON.stringify(settings));
+    }
+
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            document.body.classList.add('light-theme');
+            themeToggle.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            `;
+        } else {
+            document.body.classList.remove('light-theme');
+            themeToggle.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            `;
+        }
+    }
+
+    themeToggle.addEventListener('click', () => {
+        vibrate(10);
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(currentTheme);
+        saveSettings();
+    });
+
+    shareBtn.addEventListener('click', async () => {
+        vibrate(15);
+        const shareData = {
+            title: 'My Life Progress',
+            text: `Check out my life progress map! Every dot is a week. I've lived ${statsContainer.innerText.split('·')[1].trim()} of my life.`,
+            url: window.location.href
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback to clipboard
+                await navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+            }
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    });
+
+    // Swipe gestures
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, false);
+
+    document.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+        const threshold = 100;
+        if (touchEndX < touchStartX - threshold || touchEndX > touchStartX + threshold) {
+            vibrate(15);
+            isTransposed = !isTransposed;
+            transposeBtn.classList.toggle('active', isTransposed);
+            saveSettings();
+            requestUpdate();
+        }
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT') return;
+        
+        if (e.key.toLowerCase() === 't') {
+            vibrate(15);
+            isTransposed = !isTransposed;
+            transposeBtn.classList.toggle('active', isTransposed);
+            saveSettings();
+            requestUpdate();
+        }
+        
+        if (e.key.toLowerCase() === 's') {
+            vibrate(10);
+            settingsVisible = !settingsVisible;
+            updateSettingsVisibility();
+            saveSettings();
+        }
+    });
+
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('SW registered:', reg);
+            }).catch(err => {
+                console.log('SW registration failed:', err);
+            });
+        });
     }
 
     function updateSettingsVisibility() {
@@ -76,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Settings toggle button
     settingsToggle.addEventListener('click', () => {
+        vibrate(10);
         settingsVisible = !settingsVisible;
         updateSettingsVisibility();
         saveSettings();
@@ -95,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.style.backgroundColor = preset.passed;
         btn.title = preset.name;
         btn.onclick = () => {
+            vibrate(10);
             passedColorInput.value = preset.passed;
             updatePassedColor(preset.passed);
             document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
@@ -248,9 +377,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Right-click to save image
     gridContainer.addEventListener('contextmenu', (e) => {
+        vibrate(20);
         e.preventDefault();
         const confirmSave = confirm("Do you want to save this map as a 4K wallpaper?");
         if (confirmSave) {
+            vibrate(30);
             saveAsImage();
         }
     });
@@ -366,6 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     transposeBtn.addEventListener('click', () => {
+        vibrate(15);
         isTransposed = !isTransposed;
         transposeBtn.classList.toggle('active', isTransposed);
         saveSettings();
