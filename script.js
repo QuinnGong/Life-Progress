@@ -30,7 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
         passedColor: '#50C878',
         transposed: false,
         settingsVisible: true,
-        theme: 'dark'
+        theme: 'dark',
+        useCoinStyle: true
     };
 
     // State
@@ -41,6 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let settingsVisible = true;
     let currentTheme = 'dark';
     let currentDotSize = 10;
+    let useCoinStyle = true;
+
+    // Additional DOM Elements
+    const styleBtn = document.getElementById('styleBtn');
+    const colorSetting = document.getElementById('colorSetting');
 
     // ============ Haptic Feedback ============
     function vibrate(duration = 50) {
@@ -75,11 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
         isTransposed = saved.transposed !== undefined ? saved.transposed : defaults.transposed;
         settingsVisible = saved.settingsVisible !== undefined ? saved.settingsVisible : defaults.settingsVisible;
         currentTheme = saved.theme || defaults.theme;
+        useCoinStyle = saved.useCoinStyle !== undefined ? saved.useCoinStyle : defaults.useCoinStyle;
         
         if (isTransposed) transposeBtn.classList.add('active');
         updatePassedColor(passedColorInput.value);
         setTheme(currentTheme);
         updateSettingsVisibility();
+        updateStyleUI();
     }
 
     function saveSettings() {
@@ -89,9 +97,47 @@ document.addEventListener('DOMContentLoaded', () => {
             passedColor: passedColorInput.value,
             transposed: isTransposed,
             settingsVisible: settingsVisible,
-            theme: currentTheme
+            theme: currentTheme,
+            useCoinStyle: useCoinStyle
         };
         localStorage.setItem('lifeMapSettings', JSON.stringify(settings));
+    }
+
+    // ============ Style Management ============
+    function updateStyleUI() {
+        // Update button appearance
+        if (styleBtn) {
+            const icon = styleBtn.querySelector('.style-icon');
+            const text = styleBtn.querySelector('.style-text');
+            if (useCoinStyle) {
+                styleBtn.classList.add('active');
+                if (icon) icon.textContent = '🪙';
+                if (text) text.textContent = 'Coin';
+            } else {
+                styleBtn.classList.remove('active');
+                if (icon) icon.textContent = '●';
+                if (text) text.textContent = 'Dot';
+            }
+        }
+        
+        // Toggle color setting visibility and presets
+        if (colorSetting) {
+            colorSetting.classList.toggle('disabled', useCoinStyle);
+        }
+        if (presetsContainer) {
+            presetsContainer.parentElement.classList.toggle('disabled', useCoinStyle);
+        }
+        
+        // Toggle coin style class on body
+        document.body.classList.toggle('coin-style', useCoinStyle);
+    }
+
+    function toggleStyle() {
+        vibrate(30);
+        useCoinStyle = !useCoinStyle;
+        updateStyleUI();
+        saveSettings();
+        requestUpdate();
     }
 
     function updateSettingsVisibility() {
@@ -349,9 +395,68 @@ document.addEventListener('DOMContentLoaded', () => {
         const diffInMs = today - birthday;
         const weeksLived = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
         
-        const passedColor = getComputedStyle(document.documentElement).getPropertyValue('--passed-color').trim();
         const futureColor = currentTheme === 'dark' ? '#1a1a1a' : '#d8d8d8';
+        const passedColor = getComputedStyle(document.documentElement).getPropertyValue('--passed-color').trim();
         const accentColor = '#e67e22';
+        
+        // Gold coin colors
+        const coinGold = '#FFD700';
+        const coinGoldLight = '#FFF8B0';
+        const coinGoldDark = '#B8860B';
+
+        // Draw coin helper function
+        function drawCoin(ctx, x, y, radius, isCurrent = false) {
+            // Main coin gradient
+            const gradient = ctx.createRadialGradient(
+                x - radius * 0.3, y - radius * 0.3, 0,
+                x, y, radius
+            );
+            
+            if (isCurrent) {
+                gradient.addColorStop(0, '#FFFFFF');
+                gradient.addColorStop(0.2, coinGoldLight);
+                gradient.addColorStop(0.5, coinGold);
+                gradient.addColorStop(1, coinGoldDark);
+            } else {
+                gradient.addColorStop(0, coinGoldLight);
+                gradient.addColorStop(0.4, coinGold);
+                gradient.addColorStop(1, coinGoldDark);
+            }
+            
+            // Draw coin body
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            
+            if (isCurrent) {
+                ctx.shadowColor = coinGold;
+                ctx.shadowBlur = radius * 2;
+            }
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Draw coin border
+            ctx.strokeStyle = coinGoldDark;
+            ctx.lineWidth = isCurrent ? 2 : 1;
+            ctx.stroke();
+            
+            // Draw coin symbol
+            ctx.fillStyle = coinGoldDark;
+            ctx.font = `bold ${radius * 1.1}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(isCurrent ? '★' : '¤', x, y);
+            
+            // Add sparkle for current coin
+            if (isCurrent) {
+                ctx.fillStyle = 'white';
+                ctx.font = `${radius * 0.6}px Arial`;
+                ctx.shadowColor = coinGold;
+                ctx.shadowBlur = 5;
+                ctx.fillText('✦', x + radius * 0.6, y - radius * 0.6);
+                ctx.shadowBlur = 0;
+            }
+        }
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -365,28 +470,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 const x = startX + c * (dotSize + gap) + dotSize / 2;
                 const y = startY + r * (dotSize + gap) + dotSize / 2;
 
-                ctx.beginPath();
-                ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
-                
-                if (flatIndex < weeksLived) {
-                    ctx.fillStyle = passedColor;
-                } else if (flatIndex === weeksLived) {
-                    ctx.fillStyle = accentColor;
-                    ctx.shadowColor = accentColor;
-                    ctx.shadowBlur = 20;
+                if (useCoinStyle) {
+                    // Coin style
+                    if (flatIndex < weeksLived) {
+                        drawCoin(ctx, x, y, dotSize / 2, false);
+                    } else if (flatIndex === weeksLived) {
+                        drawCoin(ctx, x, y, dotSize / 2, true);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
+                        ctx.fillStyle = futureColor;
+                        ctx.fill();
+                    }
                 } else {
-                    ctx.fillStyle = futureColor;
+                    // Dot style
+                    ctx.beginPath();
+                    ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
+                    
+                    if (flatIndex < weeksLived) {
+                        ctx.fillStyle = passedColor;
+                    } else if (flatIndex === weeksLived) {
+                        ctx.fillStyle = accentColor;
+                        ctx.shadowColor = accentColor;
+                        ctx.shadowBlur = 20;
+                    } else {
+                        ctx.fillStyle = futureColor;
+                        ctx.shadowBlur = 0;
+                    }
+                    
+                    ctx.fill();
                     ctx.shadowBlur = 0;
                 }
-                
-                ctx.fill();
-                ctx.shadowBlur = 0;
             }
         }
 
-        ctx.fillStyle = accentColor;
+        ctx.fillStyle = useCoinStyle ? coinGold : accentColor;
         ctx.font = '500 60px "Space Mono", monospace';
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
         ctx.fillText(statsContainer.innerText, canvas.width / 2, canvas.height - 50);
 
         const link = document.createElement('a');
@@ -394,33 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
         link.href = canvas.toDataURL('image/png');
         link.click();
     }
-
-    // ============ Swipe Gesture ============
-    let touchStartX = 0;
-    let touchStartY = 0;
-    const swipeThreshold = 50;
-
-    gridContainer.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-    }, { passive: true });
-
-    gridContainer.addEventListener('touchend', (e) => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
-        
-        const deltaX = touchEndX - touchStartX;
-        const deltaY = touchEndY - touchStartY;
-        
-        // Only trigger if horizontal swipe is dominant
-        if (Math.abs(deltaX) > swipeThreshold && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-            vibrate(50);
-            isTransposed = !isTransposed;
-            transposeBtn.classList.toggle('active', isTransposed);
-            saveSettings();
-            requestUpdate();
-        }
-    }, { passive: true });
 
     // ============ Dot Hover Tooltip (Desktop) ============
     let tooltipRaf = null;
@@ -502,6 +596,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     themeToggle.addEventListener('click', toggleTheme);
     saveImageBtn.addEventListener('click', saveAsImage);
+    
+    if (styleBtn) {
+        styleBtn.addEventListener('click', toggleStyle);
+    }
 
     transposeBtn.addEventListener('click', () => {
         vibrate(30);
