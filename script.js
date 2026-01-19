@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const gridContainer = document.getElementById('gridContainer');
     const statsContainer = document.getElementById('stats');
     const presetsContainer = document.getElementById('presets');
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const header = document.getElementById('header');
 
     // Sophisticated and Elegant Presets for Dark Mode
     const elegantPresets = [
@@ -21,13 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
         birthday: '2000-01-01',
         lifespan: 80,
         passedColor: '#50C878',
-        transposed: false
+        transposed: false,
+        settingsVisible: true
     };
 
     let lastLifespan = null;
     let lastTransposed = null;
     let cachedDots = [];
     let isTransposed = false;
+    let settingsVisible = true;
 
     function loadSettings() {
         const saved = JSON.parse(localStorage.getItem('lifeMapSettings') || '{}');
@@ -35,9 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
         lifespanInput.value = saved.lifespan || defaults.lifespan;
         passedColorInput.value = saved.passedColor || defaults.passedColor;
         isTransposed = saved.transposed !== undefined ? saved.transposed : defaults.transposed;
+        settingsVisible = saved.settingsVisible !== undefined ? saved.settingsVisible : defaults.settingsVisible;
         
         if (isTransposed) transposeBtn.classList.add('active');
         updatePassedColor(passedColorInput.value);
+        
+        // Apply settings visibility
+        updateSettingsVisibility();
     }
 
     function saveSettings() {
@@ -45,10 +54,32 @@ document.addEventListener('DOMContentLoaded', () => {
             birthday: birthdayInput.value,
             lifespan: lifespanInput.value,
             passedColor: passedColorInput.value,
-            transposed: isTransposed
+            transposed: isTransposed,
+            settingsVisible: settingsVisible
         };
         localStorage.setItem('lifeMapSettings', JSON.stringify(settings));
     }
+
+    function updateSettingsVisibility() {
+        if (settingsVisible) {
+            settingsPanel.classList.remove('hidden');
+            header.classList.remove('minimal');
+            document.body.classList.remove('minimal-mode');
+            settingsToggle.classList.add('active');
+        } else {
+            settingsPanel.classList.add('hidden');
+            header.classList.add('minimal');
+            document.body.classList.add('minimal-mode');
+            settingsToggle.classList.remove('active');
+        }
+    }
+
+    // Settings toggle button
+    settingsToggle.addEventListener('click', () => {
+        settingsVisible = !settingsVisible;
+        updateSettingsVisibility();
+        saveSettings();
+    });
 
     function updatePassedColor(color) {
         // Use requestAnimationFrame for smoother color transitions
@@ -357,6 +388,75 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         saveSettings();
     });
+
+    // Download extension button - generates ZIP file
+    const downloadExtBtn = document.getElementById('downloadExtBtn');
+    if (downloadExtBtn) {
+        downloadExtBtn.addEventListener('click', async () => {
+            downloadExtBtn.disabled = true;
+            downloadExtBtn.innerHTML = 'Packaging...';
+            
+            try {
+                // Create ZIP using JSZip
+                const zip = new JSZip();
+                
+                // Fetch extension files
+                const [manifestRes, htmlRes, cssRes, jsRes] = await Promise.all([
+                    fetch('chrome-extension/manifest.json'),
+                    fetch('chrome-extension/index.html'),
+                    fetch('chrome-extension/style.css'),
+                    fetch('chrome-extension/script.js')
+                ]);
+
+                const manifest = await manifestRes.text();
+                const html = await htmlRes.text();
+                const css = await cssRes.text();
+                const js = await jsRes.text();
+
+                // Add files to ZIP
+                zip.file('manifest.json', manifest);
+                zip.file('index.html', html);
+                zip.file('style.css', css);
+                zip.file('script.js', js);
+
+                // Generate and download
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'life-progress-extension.zip';
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                // Show instructions
+                setTimeout(() => {
+                    alert(
+                        'Extension downloaded!\n\n' +
+                        'To install:\n' +
+                        '1. Extract the ZIP file\n' +
+                        '2. Open chrome://extensions (or edge://extensions)\n' +
+                        '3. Enable "Developer mode" (top right)\n' +
+                        '4. Click "Load unpacked"\n' +
+                        '5. Select the extracted folder\n\n' +
+                        'Open a new tab to see Life Progress!'
+                    );
+                }, 500);
+
+            } catch (error) {
+                console.error('Failed to create extension package:', error);
+                alert('Failed to create package. Please try downloading files manually from chrome-extension/ folder.');
+            }
+            
+            downloadExtBtn.disabled = false;
+            downloadExtBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Install
+            `;
+        });
+    }
 
     // Initial load
     loadSettings();
