@@ -1,41 +1,33 @@
+/* Dark Theme (Default) */
 :root {
     --bg-color: #0d0d0d;
     --text-color: #f0f0f0;
+    --text-secondary: #888;
     --panel-bg: rgba(20, 20, 20, 0.7);
     --input-bg: rgba(255, 255, 255, 0.03);
     --border-color: rgba(255, 255, 255, 0.08);
-    --accent-color: #e67e22; /* Sophisticated Amber/Orange */
-    --passed-color: #50C878; /* Default Emerald */
-    --future-color: #1a1a1a; /* Darker, more subtle gray */
+    --accent-color: #e67e22;
+    --passed-color: #50C878;
+    --future-color: #1a1a1a;
+    --fab-bg: rgba(255, 255, 255, 0.05);
+    --fab-hover: rgba(255, 255, 255, 0.1);
+    --label-color: #333;
+    --tooltip-bg: rgba(0, 0, 0, 0.9);
 }
 
-/* Light Theme Variables */
-body.light-theme {
-    --bg-color: #f8f9fa;
-    --text-color: #212529;
-    --panel-bg: rgba(255, 255, 255, 0.85);
-    --input-bg: rgba(0, 0, 0, 0.05);
-    --border-color: rgba(0, 0, 0, 0.1);
-    --future-color: #e9ecef;
-}
-
-body.light-theme h1 {
-    background: linear-gradient(135deg, #1a1a1a 0%, #555 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-body.light-theme .subtitle {
-    color: #6c757d;
-}
-
-body.light-theme .elegant-input {
-    color: #212529;
-}
-
-body.light-theme .label {
-    color: #adb5bd;
+/* Light Theme */
+[data-theme="light"] {
+    --bg-color: #f5f5f0;
+    --text-color: #1a1a1a;
+    --text-secondary: #666;
+    --panel-bg: rgba(255, 255, 255, 0.8);
+    --input-bg: rgba(0, 0, 0, 0.03);
+    --border-color: rgba(0, 0, 0, 0.08);
+    --future-color: #d8d8d8;
+    --fab-bg: rgba(0, 0, 0, 0.05);
+    --fab-hover: rgba(0, 0, 0, 0.1);
+    --label-color: #999;
+    --tooltip-bg: rgba(50, 50, 50, 0.95);
 }
 
 * {
@@ -53,10 +45,11 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 60px 20px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
-    max-width: 1100px;
+    max-width: 1400px;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -64,19 +57,103 @@ body {
     position: relative;
 }
 
-/* Settings Toggle Button */
-.settings-toggle {
+/* Floating Action Buttons Group */
+.fab-group {
     position: fixed;
     top: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+}
+
+.fab-btn {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #444; /* Subtle gray */
+    background: var(--fab-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
     cursor: pointer;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+.fab-btn:hover {
+    background: var(--fab-hover);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.fab-btn.active {
+    opacity: 0.9;
+    color: var(--accent-color);
+}
+
+/* Theme toggle icon visibility */
+.fab-btn .icon-moon { display: none; }
+.fab-btn .icon-sun { display: block; }
+[data-theme="light"] .fab-btn .icon-moon { display: block; }
+[data-theme="light"] .fab-btn .icon-sun { display: none; }
+
+/* Dot Tooltip */
+.dot-tooltip {
+    position: fixed;
+    background: var(--tooltip-bg);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+    white-space: nowrap;
+}
+
+.dot-tooltip.visible {
+    opacity: 1;
+}
+
+/* Keyboard Shortcuts Hint */
+.shortcuts-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.shortcuts-hint span {
+    display: inline-block;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 4px;
+    font-family: 'Space Mono', monospace;
+}
+
+body:hover .shortcuts-hint {
+    opacity: 0.7;
+}
+
+/* Legacy settings-toggle removed, using fab-group now */
+.settings-toggle {
+    display: none;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
@@ -170,10 +247,11 @@ h1 {
     font-weight: 800;
     letter-spacing: -0.03em;
     margin-bottom: 12px;
-    background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+    background: linear-gradient(135deg, var(--text-color) 0%, var(--text-secondary) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    transition: all 0.3s ease;
 }
 
 .subtitle {
@@ -272,12 +350,6 @@ input[type="color"]::-webkit-color-swatch {
     align-items: center;
 }
 
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
 .preset-btn {
     width: 26px;
     height: 26px;
@@ -358,10 +430,11 @@ input[type="color"]::-webkit-color-swatch {
 .label {
     font-family: 'Space Mono', monospace;
     font-size: 0.55rem;
-    color: #333; /* More subtle labels */
+    color: var(--label-color);
     user-select: none;
     line-height: 10px;
     height: 10px;
+    transition: color 0.3s ease;
 }
 
 .label.year {
@@ -376,12 +449,17 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
+    width: var(--dot-size, 10px);
+    height: var(--dot-size, 10px);
     border-radius: 50%;
     background-color: var(--future-color);
-    transition: background-color 0.5s ease;
-    /* Use will-change sparingly, only if performance is still an issue */
+    transition: background-color 0.5s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+.dot:hover {
+    transform: scale(1.3);
+    z-index: 5;
 }
 
 .dot.passed {
@@ -412,35 +490,6 @@ input[type="color"]::-webkit-color-swatch {
     animation: breathing 1s ease-in-out infinite;
     /* Remove transition to allow animation to take full control */
     transition: none; 
-}
-
-/* Desktop Optimization & Hover Effects */
-@media (min-width: 1101px) {
-    .dot:hover {
-        transform: scale(2.5);
-        z-index: 100;
-        box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-    }
-    
-    .grid-container {
-        gap: 6px;
-    }
-    
-    .dot {
-        width: 12px;
-        height: 12px;
-    }
-    
-    .label {
-        font-size: 0.65rem;
-    }
-
-    /* Larger and more interactive stats */
-    .stats:hover {
-        transform: scale(1.05);
-        opacity: 1;
-        cursor: default;
-    }
 }
 
 .stats {
@@ -494,6 +543,27 @@ input[type="color"]::-webkit-color-swatch {
 @media (max-width: 750px) {
     body {
         padding: 15px 12px;
+    }
+    
+    .fab-group {
+        top: 10px;
+        right: 10px;
+        flex-direction: row;
+        gap: 8px;
+    }
+    
+    .fab-btn {
+        width: 34px;
+        height: 34px;
+    }
+    
+    .fab-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .shortcuts-hint {
+        display: none;
     }
     
     header {

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
     const birthdayInput = document.getElementById('birthday');
     const lifespanInput = document.getElementById('lifespan');
     const passedColorInput = document.getElementById('passedColor');
@@ -10,20 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsPanel = document.getElementById('settingsPanel');
     const header = document.getElementById('header');
     const themeToggle = document.getElementById('themeToggle');
-    const shareBtn = document.getElementById('shareBtn');
+    const saveImageBtn = document.getElementById('saveImageBtn');
+    const dotTooltip = document.getElementById('dotTooltip');
 
-    // Haptic Feedback helper
-    function vibrate(duration = 10) {
-        if ('vibrate' in navigator) {
-            try {
-                navigator.vibrate(duration);
-            } catch (e) {
-                // Ignore vibration errors
-            }
-        }
-    }
-
-    // Sophisticated and Elegant Presets for Dark Mode
+    // Presets
     const elegantPresets = [
         { name: 'Emerald', passed: '#50C878' },
         { name: 'Champagne', passed: '#D4AF37' },
@@ -42,13 +33,40 @@ document.addEventListener('DOMContentLoaded', () => {
         theme: 'dark'
     };
 
+    // State
     let lastLifespan = null;
     let lastTransposed = null;
     let cachedDots = [];
     let isTransposed = false;
     let settingsVisible = true;
     let currentTheme = 'dark';
+    let currentDotSize = 10;
 
+    // ============ Haptic Feedback ============
+    function vibrate(duration = 50) {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(duration);
+        }
+    }
+
+    // ============ Theme Management ============
+    function setTheme(theme) {
+        currentTheme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        // Update meta theme-color for mobile browsers
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) {
+            metaTheme.content = theme === 'dark' ? '#0d0d0d' : '#f5f5f0';
+        }
+        saveSettings();
+    }
+
+    function toggleTheme() {
+        vibrate(30);
+        setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    }
+
+    // ============ Settings Management ============
     function loadSettings() {
         const saved = JSON.parse(localStorage.getItem('lifeMapSettings') || '{}');
         birthdayInput.value = saved.birthday || defaults.birthday;
@@ -60,9 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (isTransposed) transposeBtn.classList.add('active');
         updatePassedColor(passedColorInput.value);
-        applyTheme(currentTheme);
-        
-        // Apply settings visibility
+        setTheme(currentTheme);
         updateSettingsVisibility();
     }
 
@@ -76,115 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
             theme: currentTheme
         };
         localStorage.setItem('lifeMapSettings', JSON.stringify(settings));
-    }
-
-    function applyTheme(theme) {
-        if (theme === 'light') {
-            document.body.classList.add('light-theme');
-            themeToggle.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            `;
-        } else {
-            document.body.classList.remove('light-theme');
-            themeToggle.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-            `;
-        }
-    }
-
-    themeToggle.addEventListener('click', () => {
-        vibrate(10);
-        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        applyTheme(currentTheme);
-        saveSettings();
-    });
-
-    shareBtn.addEventListener('click', async () => {
-        vibrate(15);
-        const shareData = {
-            title: 'My Life Progress',
-            text: `Check out my life progress map! Every dot is a week. I've lived ${statsContainer.innerText.split('·')[1].trim()} of my life.`,
-            url: window.location.href
-        };
-
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                // Fallback to clipboard
-                await navigator.clipboard.writeText(window.location.href);
-                alert('Link copied to clipboard!');
-            }
-        } catch (err) {
-            console.error('Error sharing:', err);
-        }
-    });
-
-    // Swipe gestures
-    let touchStartX = 0;
-    let touchEndX = 0;
-
-    document.addEventListener('touchstart', e => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, false);
-
-    document.addEventListener('touchend', e => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, false);
-
-    function handleSwipe() {
-        const threshold = 100;
-        if (touchEndX < touchStartX - threshold || touchEndX > touchStartX + threshold) {
-            vibrate(15);
-            isTransposed = !isTransposed;
-            transposeBtn.classList.toggle('active', isTransposed);
-            saveSettings();
-            requestUpdate();
-        }
-    }
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', e => {
-        if (e.target.tagName === 'INPUT') return;
-        
-        if (e.key.toLowerCase() === 't') {
-            vibrate(15);
-            isTransposed = !isTransposed;
-            transposeBtn.classList.toggle('active', isTransposed);
-            saveSettings();
-            requestUpdate();
-        }
-        
-        if (e.key.toLowerCase() === 's') {
-            vibrate(10);
-            settingsVisible = !settingsVisible;
-            updateSettingsVisibility();
-            saveSettings();
-        }
-    });
-
-    // Service Worker Registration
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('SW registered:', reg);
-            }).catch(err => {
-                console.log('SW registration failed:', err);
-            });
-        });
     }
 
     function updateSettingsVisibility() {
@@ -201,29 +108,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Settings toggle button
-    settingsToggle.addEventListener('click', () => {
-        vibrate(10);
-        settingsVisible = !settingsVisible;
-        updateSettingsVisibility();
-        saveSettings();
-    });
-
     function updatePassedColor(color) {
-        // Use requestAnimationFrame for smoother color transitions
         requestAnimationFrame(() => {
             document.documentElement.style.setProperty('--passed-color', color);
         });
     }
 
-    // Initialize presets
+    // ============ Adaptive Dot Size ============
+    function calculateDotSize() {
+        const lifespan = parseInt(lifespanInput.value) || 80;
+        const containerWidth = gridContainer.parentElement?.offsetWidth || window.innerWidth - 40;
+        
+        // Calculate based on available width and number of columns
+        const cols = isTransposed ? lifespan : 52;
+        const labelWidth = 35;
+        const availableWidth = containerWidth - labelWidth;
+        const gap = 4;
+        
+        // Calculate optimal dot size
+        let dotSize = Math.floor((availableWidth - (cols - 1) * gap) / cols);
+        
+        // Clamp between 6px and 16px
+        dotSize = Math.max(6, Math.min(16, dotSize));
+        
+        // Apply to CSS
+        if (dotSize !== currentDotSize) {
+            currentDotSize = dotSize;
+            document.documentElement.style.setProperty('--dot-size', `${dotSize}px`);
+        }
+        
+        return dotSize;
+    }
+
+    // ============ Presets ============
     elegantPresets.forEach(preset => {
         const btn = document.createElement('div');
         btn.className = 'preset-btn';
         btn.style.backgroundColor = preset.passed;
         btn.title = preset.name;
         btn.onclick = () => {
-            vibrate(10);
+            vibrate(30);
             passedColorInput.value = preset.passed;
             updatePassedColor(preset.passed);
             document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
@@ -234,9 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         presetsContainer.appendChild(btn);
     });
 
-    /**
-     * Debounced update mechanism
-     */
+    // ============ Debounced Update ============
     let updatePending = false;
     function requestUpdate() {
         if (updatePending) return;
@@ -253,6 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (isNaN(birthday.getTime())) return;
 
+        calculateDotSize();
+
         if (lastLifespan !== lifespanYears || lastTransposed !== isTransposed) {
             regenerateGridStructure(lifespanYears);
             lastLifespan = lifespanYears;
@@ -264,73 +188,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function regenerateGridStructure(lifespanYears) {
         gridContainer.innerHTML = '';
-        cachedDots = []; // Clear cache
+        cachedDots = [];
         const fragment = document.createDocumentFragment();
+        const dotSize = calculateDotSize();
 
         if (!isTransposed) {
-            gridContainer.style.gridTemplateColumns = `35px repeat(52, 1fr)`;
+            gridContainer.style.gridTemplateColumns = `35px repeat(52, ${dotSize}px)`;
             
-            // Corner
             const corner = document.createElement('div');
             corner.className = 'label corner';
             fragment.appendChild(corner);
 
-            // Week labels
             for (let w = 1; w <= 52; w++) {
                 const weekLabel = document.createElement('div');
                 weekLabel.className = 'label week';
-                weekLabel.innerText = w; // Show all week numbers
+                weekLabel.innerText = w;
                 fragment.appendChild(weekLabel);
             }
 
-            // Year rows
             for (let y = 0; y < lifespanYears; y++) {
                 const yearLabel = document.createElement('div');
                 yearLabel.className = 'label year';
-                yearLabel.innerText = y; // Show all year numbers
+                yearLabel.innerText = y;
                 fragment.appendChild(yearLabel);
 
                 for (let w = 0; w < 52; w++) {
                     const dot = document.createElement('div');
                     dot.className = 'dot';
+                    dot.dataset.year = y;
+                    dot.dataset.week = w + 1;
+                    dot.dataset.index = y * 52 + w;
                     fragment.appendChild(dot);
-                    cachedDots.push(dot); // Cache the dot reference
+                    cachedDots.push(dot);
                 }
             }
         } else {
-            // Transposed: Rows = Weeks, Cols = Years
-            gridContainer.style.gridTemplateColumns = `35px repeat(${lifespanYears}, 1fr)`;
+            gridContainer.style.gridTemplateColumns = `35px repeat(${lifespanYears}, ${dotSize}px)`;
             
-            // Corner
             const corner = document.createElement('div');
             corner.className = 'label corner';
             fragment.appendChild(corner);
 
-            // Year labels (top axis)
             for (let y = 0; y < lifespanYears; y++) {
                 const yearLabel = document.createElement('div');
-                yearLabel.className = 'label week'; // Horizontal alignment
-                yearLabel.innerText = y; // Show all year numbers
+                yearLabel.className = 'label week';
+                yearLabel.innerText = y;
                 fragment.appendChild(yearLabel);
             }
 
-            // Week rows (1-52)
             const dotMatrix = Array.from({ length: 52 }, () => []);
             for (let w = 0; w < 52; w++) {
                 const weekLabel = document.createElement('div');
-                weekLabel.className = 'label year'; // Vertical alignment
-                weekLabel.innerText = w + 1; // Show all week numbers
+                weekLabel.className = 'label year';
+                weekLabel.innerText = w + 1;
                 fragment.appendChild(weekLabel);
 
                 for (let y = 0; y < lifespanYears; y++) {
                     const dot = document.createElement('div');
                     dot.className = 'dot';
+                    dot.dataset.year = y;
+                    dot.dataset.week = w + 1;
+                    dot.dataset.index = y * 52 + w;
                     fragment.appendChild(dot);
                     dotMatrix[w][y] = dot;
                 }
             }
             
-            // Map flat index correctly for chronological update
             for (let y = 0; y < lifespanYears; y++) {
                 for (let w = 0; w < 52; w++) {
                     cachedDots.push(dotMatrix[w][y]);
@@ -346,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const diffInMs = today - birthday;
         const weeksLived = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
 
-        // Stats text
         const deathDate = new Date(birthday);
         deathDate.setFullYear(birthday.getFullYear() + lifespanYears);
         const diffRemainingMs = deathDate - today;
@@ -354,13 +276,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const percentage = Math.min(100, Math.max(0, (weeksLived / totalWeeks) * 100)).toFixed(0);
         statsContainer.innerText = `${daysLeft.toLocaleString()}d left · ${percentage}%`;
 
-        // Update classes using cached references
         for (let i = 0; i < cachedDots.length; i++) {
             const dot = cachedDots[i];
             const isPassed = i < weeksLived;
             const isCurrent = i === weeksLived;
             
-            // Check if state actually changed before touching DOM
             if (isPassed && !dot.classList.contains('passed')) {
                 dot.classList.add('passed');
             } else if (!isPassed && dot.classList.contains('passed')) {
@@ -375,88 +295,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Right-click to save image
-    gridContainer.addEventListener('contextmenu', (e) => {
-        vibrate(20);
-        e.preventDefault();
-        const confirmSave = confirm("Do you want to save this map as a 4K wallpaper?");
-        if (confirmSave) {
-            vibrate(30);
-            saveAsImage();
-        }
-    });
-
+    // ============ Save Image ============
     function saveAsImage() {
-        // Create canvas
+        vibrate(50);
+        
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // 4K Resolution logic:
-        // Default layout (Not Transposed): Rows=Years, Cols=Weeks -> Taller -> Portrait (2160 x 3840)
-        // Transposed layout: Rows=Weeks, Cols=Years -> Wider -> Landscape (3840 x 2160)
-        const isLandscape = isTransposed; 
+        const isLandscape = isTransposed;
         canvas.width = isLandscape ? 3840 : 2160;
         canvas.height = isLandscape ? 2160 : 3840;
 
-        // Fill Background
-        ctx.fillStyle = '#0d0d0d'; // Match body bg
+        // Use current theme background
+        const bgColor = currentTheme === 'dark' ? '#0d0d0d' : '#f5f5f0';
+        ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Calculate grid dimensions to fit nicely with padding
         const padding = 150;
         const drawingWidth = canvas.width - (padding * 2);
         const drawingHeight = canvas.height - (padding * 2);
 
-        // Get current grid data
         const lifespanYears = parseInt(lifespanInput.value) || 80;
         const cols = isTransposed ? lifespanYears : 52;
         const rows = isTransposed ? 52 : lifespanYears;
 
-        // Calculate dot size and spacing to fit the drawing area
-        // We need to fit 'cols' dots and 'cols-1' gaps horizontally
-        // and 'rows' dots and 'rows-1' gaps vertically
-        
-        // Try to maintain aspect ratio of dots (circles)
-        const gapRatio = 0.4; // Gap is 40% of dot size
-        
-        // width = cols * dotSize + (cols - 1) * (dotSize * gapRatio)
-        // width = dotSize * (cols + (cols - 1) * gapRatio)
-        
+        const gapRatio = 0.4;
         const dotSizeX = drawingWidth / (cols + (cols - 1) * gapRatio);
         const dotSizeY = drawingHeight / (rows + (rows - 1) * gapRatio);
         const dotSize = Math.min(dotSizeX, dotSizeY);
         const gap = dotSize * gapRatio;
 
-        // Center the grid
         const totalGridWidth = cols * dotSize + (cols - 1) * gap;
         const totalGridHeight = rows * dotSize + (rows - 1) * gap;
         const startX = (canvas.width - totalGridWidth) / 2;
         const startY = (canvas.height - totalGridHeight) / 2;
 
-        // Draw dots
-        // We can reuse cachedDots logic but we need 2D coordinates
-        // Let's re-calculate based on current layout
-        
         const birthday = new Date(birthdayInput.value);
         const today = new Date();
         const diffInMs = today - birthday;
         const weeksLived = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
         
-        // Colors
         const passedColor = getComputedStyle(document.documentElement).getPropertyValue('--passed-color').trim();
-        const futureColor = '#1a1a1a'; // Match CSS
+        const futureColor = currentTheme === 'dark' ? '#1a1a1a' : '#d8d8d8';
         const accentColor = '#e67e22';
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                // Calculate chronological index
                 let flatIndex;
                 if (!isTransposed) {
-                    // Standard: Row=Year, Col=Week
                     flatIndex = r * 52 + c;
                 } else {
-                    // Transposed: Row=Week, Col=Year
-                    // r (0-51) is Week-1, c (0-Lifespan-1) is Year
                     flatIndex = c * 52 + r;
                 }
 
@@ -470,7 +358,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.fillStyle = passedColor;
                 } else if (flatIndex === weeksLived) {
                     ctx.fillStyle = accentColor;
-                    // Add glow for current dot
                     ctx.shadowColor = accentColor;
                     ctx.shadowBlur = 20;
                 } else {
@@ -479,32 +366,117 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 ctx.fill();
-                ctx.shadowBlur = 0; // Reset shadow
+                ctx.shadowBlur = 0;
             }
         }
 
-        // Add Stats Text at bottom
         ctx.fillStyle = accentColor;
         ctx.font = '500 60px "Space Mono", monospace';
         ctx.textAlign = 'center';
         ctx.fillText(statsContainer.innerText, canvas.width / 2, canvas.height - 50);
 
-        // Save
         const link = document.createElement('a');
         link.download = `life-map-${isLandscape ? 'landscape' : 'portrait'}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     }
 
+    // ============ Swipe Gesture ============
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const swipeThreshold = 50;
+
+    gridContainer.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    gridContainer.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        
+        // Only trigger if horizontal swipe is dominant
+        if (Math.abs(deltaX) > swipeThreshold && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            vibrate(50);
+            isTransposed = !isTransposed;
+            transposeBtn.classList.toggle('active', isTransposed);
+            saveSettings();
+            requestUpdate();
+        }
+    }, { passive: true });
+
+    // ============ Dot Hover Tooltip (Desktop) ============
+    gridContainer.addEventListener('mousemove', (e) => {
+        if (e.target.classList.contains('dot')) {
+            const year = e.target.dataset.year;
+            const week = e.target.dataset.week;
+            const index = parseInt(e.target.dataset.index);
+            
+            const birthday = new Date(birthdayInput.value);
+            const dotDate = new Date(birthday);
+            dotDate.setDate(dotDate.getDate() + index * 7);
+            
+            const dateStr = dotDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            
+            dotTooltip.textContent = `Year ${year}, Week ${week} · ${dateStr}`;
+            dotTooltip.style.left = `${e.clientX + 10}px`;
+            dotTooltip.style.top = `${e.clientY + 10}px`;
+            dotTooltip.classList.add('visible');
+        }
+    });
+
+    gridContainer.addEventListener('mouseleave', () => {
+        dotTooltip.classList.remove('visible');
+    });
+
+    // ============ Keyboard Shortcuts ============
+    document.addEventListener('keydown', (e) => {
+        // Don't trigger if typing in input
+        if (e.target.tagName === 'INPUT') return;
+        
+        switch (e.key.toLowerCase()) {
+            case 't':
+                vibrate(30);
+                isTransposed = !isTransposed;
+                transposeBtn.classList.toggle('active', isTransposed);
+                saveSettings();
+                requestUpdate();
+                break;
+            case 's':
+                saveAsImage();
+                break;
+            case 'd':
+                toggleTheme();
+                break;
+        }
+    });
+
+    // ============ Event Listeners ============
+    settingsToggle.addEventListener('click', () => {
+        vibrate(30);
+        settingsVisible = !settingsVisible;
+        updateSettingsVisibility();
+        saveSettings();
+    });
+
+    themeToggle.addEventListener('click', toggleTheme);
+    saveImageBtn.addEventListener('click', saveAsImage);
+
     transposeBtn.addEventListener('click', () => {
-        vibrate(15);
+        vibrate(30);
         isTransposed = !isTransposed;
         transposeBtn.classList.toggle('active', isTransposed);
         saveSettings();
         requestUpdate();
     });
 
-    // Input listeners with immediate visual feedback but throttled rendering
     birthdayInput.addEventListener('input', () => {
         saveSettings();
         requestUpdate();
@@ -521,37 +493,58 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSettings();
     });
 
-    // Download extension button - generates ZIP file
+    // Context menu save
+    gridContainer.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (confirm('Save as 4K wallpaper?')) {
+            saveAsImage();
+        }
+    });
+
+    // Window resize - recalculate dot size
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            lastLifespan = null; // Force regeneration
+            requestUpdate();
+        }, 200);
+    });
+
+    // ============ Download Extension Button ============
     const downloadExtBtn = document.getElementById('downloadExtBtn');
     if (downloadExtBtn) {
         downloadExtBtn.addEventListener('click', async () => {
+            vibrate(50);
             downloadExtBtn.disabled = true;
             downloadExtBtn.innerHTML = 'Packaging...';
             
             try {
-                // Create ZIP using JSZip
                 const zip = new JSZip();
                 
-                // Fetch extension files
-                const [manifestRes, htmlRes, cssRes, jsRes] = await Promise.all([
+                const [manifestRes, htmlRes, cssRes, jsRes, icon64Res, icon128Res] = await Promise.all([
                     fetch('chrome-extension/manifest.json'),
                     fetch('chrome-extension/index.html'),
                     fetch('chrome-extension/style.css'),
-                    fetch('chrome-extension/script.js')
+                    fetch('chrome-extension/script.js'),
+                    fetch('chrome-extension/icon64.png'),
+                    fetch('chrome-extension/icon128.png')
                 ]);
 
                 const manifest = await manifestRes.text();
                 const html = await htmlRes.text();
                 const css = await cssRes.text();
                 const js = await jsRes.text();
+                const icon64 = await icon64Res.blob();
+                const icon128 = await icon128Res.blob();
 
-                // Add files to ZIP
                 zip.file('manifest.json', manifest);
                 zip.file('index.html', html);
                 zip.file('style.css', css);
                 zip.file('script.js', js);
+                zip.file('icon64.png', icon64);
+                zip.file('icon128.png', icon128);
 
-                // Generate and download
                 const blob = await zip.generateAsync({ type: 'blob' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
@@ -559,7 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.click();
                 URL.revokeObjectURL(link.href);
 
-                // Show instructions
                 setTimeout(() => {
                     alert(
                         'Extension downloaded!\n\n' +
@@ -575,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error('Failed to create extension package:', error);
-                alert('Failed to create package. Please try downloading files manually from chrome-extension/ folder.');
+                alert('Failed to create package. Please try downloading files manually.');
             }
             
             downloadExtBtn.disabled = false;
@@ -590,7 +582,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initial load
+    // ============ PWA Service Worker Registration ============
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then((registration) => {
+                    console.log('SW registered:', registration.scope);
+                })
+                .catch((error) => {
+                    console.log('SW registration failed:', error);
+                });
+        });
+    }
+
+    // ============ Initialize ============
     loadSettings();
     updateAll();
 });
