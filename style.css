@@ -467,9 +467,10 @@ input[type="color"]::-webkit-color-swatch {
     
     .settings-row {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 10px;
         justify-items: center;
+        width: 100%;
     }
     
     .setting-item {
@@ -487,19 +488,22 @@ input[type="color"]::-webkit-color-swatch {
     }
     
     .elegant-input {
-        padding: 6px 8px;
-        font-size: 0.75rem;
+        padding: 6px 6px;
+        font-size: 0.7rem;
         border-radius: 8px;
-        width: 100%;
-        max-width: 100%;
+        width: calc(100% - 4px);
+        max-width: calc(100% - 4px);
         min-width: 0;
         box-sizing: border-box;
+        margin: 0 2px;
     }
     
     /* Fix date input on iOS */
     input[type="date"] {
         min-width: 0;
-        max-width: 100%;
+        max-width: calc(100% - 4px);
+        -webkit-appearance: none;
+        appearance: none;
     }
     
     .elegant-btn {
